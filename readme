@@ -16,13 +16,16 @@ This script must be run from an account with Domain Admins permissions on the ta
 
 .TODO
 
-- allow input of target domain(s)
-- new folder structure: domain name | GPO display name | backup date
+ƒ allow input of target domain(s)
+ƒ new folder structure: domain name | GPO display name | backup date
+ƒ put HTML reports in 2nd-level folder (GPO display name)
+- document parameters
+- document examples
 
 .WISHLIST
 
-- backup multiple domains in one execution
-- allow search criteria, e.g. to backup only GPOs beginning with a certain prefix
+ƒ allow search criteria, e.g. to backup only GPOs beginning with a certain prefix
+- backup multiple domains (or forest root and all children?) in one execution
 - zip/compress the backup dirs
 - trim to keep only last X backups, or backups within last X days
 

@@ -10,53 +10,81 @@ Automated backup of Group Policy objects.
 
 This script must be run from an account with Domain Admins permissions on the target domain.
 
+.PARAMETERS
+
+# TODO: document parameters
+
+.EXAMPLES
+
+# TODO: document examples
+
 #>
 
-# configure via parameters or default values
-param ( [string]$backupdir = "C:\GPOBackups", [boolean]$createreports = $true )
+# configure via parameters
+param  (
+  [string]$domain    = ( [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain() ).Name,
+  [string]$searchTxt = "",
+  [string]$backupDir = "C:\GPOBackups"
+)
 
-"### Backup All GPOs in this Domain ###"
-"" #blank line
+# configure via default values
+[boolean]$createReports = $true
 
-$domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
-$domainname = $domain.Name
-"Domain: " + $domainname
-""
-
+### No user-serviceable parts beyond this point :P ###
 $today = Get-Date -Format yyyy-MM-dd
-if (-not (Test-Path $backupdir -PathType container)) { mkdir $backupdir | Out-Null }
-$backupdir = Join-Path $backupdir $today
-if (Test-Path $backupdir -PathType container) {
-  ### TODO: prompt, rmdir
-} else {
-  mkdir $backupdir | Out-Null
-}
-Set-Location $backupdir
-"Directory: " + $backupdir
+if (-Not (Test-Path $backupDir -PathType container)) { mkdir $backupDir | Out-Null }
 
+# TODO: what to do with output?
+"### Backup-GPOs.ps1 ###"
+" - Domain: " + $domain
+
+# query GPOs
 $gpm = New-Object -comObject GPMgmt.GPM
-$k = $gpm.getconstants()
-$dom = $gpm.getdomain($domainname,"","")
+$k = $gpm.GetConstants()
+$dom = $gpm.GetDomain($domain, "","")
 $sc = $gpm.CreateSearchCriteria() #empty criteria fetches all
 
-$dom.SearchGPOs($sc) | % {
-  $comment = $today + " backup of GPO: " + $_.DisplayName
-  $result = $_.Backup( $backupdir, $comment )
-  $comment + " results:"
-  $result.result
+# custom search criteria
+If ($searchTxt -Ne "") {
+  $sc.add($k.SearchPropertyGPODisplayName,$k.SearchOpContains, $searchTxt)
+  " - GPO name contains: " + $searchTxt
+}
+
+# loop-de-loop
+$dom.SearchGPOs($sc) | ForEach-Object {
+  # first-level folder structure
+  $bupath = Join-Path $backupDir $domain
+  If (-Not (Test-Path $bupath -PathType container)) {
+    mkdir $bupath | Out-Null
+  }
+
+  # second-level folder structure
+  $gponame = $_.DisplayName
+  $bupath = Join-Path $bupath $gponame
+  If (-Not (Test-Path $bupath -PathType container)) {
+    mkdir $bupath | Out-Null
+  }
+  
+  # save report here
+  If ($createReports) {
+    $reportContent = $_.GenerateReport($k.ReportHTML)
+    $reportFile = Join-Path $bupath ($gponame + '_' + $today + '.html')
+    $reportContent.result | Out-File $reportFile
+  }
+  
+  # third-level folder structure
+  $bupath = Join-Path $bupath $today
+  If (Test-Path $bupath -PathType container) {
+    # note that if you've already run this today, this run will replace the earlier backup!
+    Remove-Item -Recurse -Force $bupath
+  }
+  mkdir $bupath | Out-Null
+  
+  # actually do the backup
+  $comment = 'Domain: ' + $domain + ' | GPO: ' + $gponame + ' | Date: ' + $today
+  $result = $_.Backup( $bupath, $comment )
+  $result.result # default pretty-print of COM object properties and values
   ""
 }
 
-if ($createreports) {
-  "Creating HTML reports..."
-  ""
-  $bd = $gpm.GetBackupDir($backupdir)
-  $bd.SearchBackups($sc) | % {
-    $report = $_.GenerateReport($k.ReportHTML)
-    $filename = $_.GPODisplayName + ".html"
-    $filename
-    $report.result | out-file $filename
-    ""
-  }
-}
 "Finished!"
