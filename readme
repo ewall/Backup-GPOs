@@ -1,0 +1,29 @@
+<#
+
+Backup-GPOs.ps1 -- by Eric Wallace <wallae@mmc.org>, December 2011
+
+.SYNOPSIS
+
+Automated backup of Group Policy objects.
+
+.REQUIREMENTS
+
+This script must be run from an account with Domain Admins permissions on the target domain.
+
+.HISTORY
+
+- 2011-07-07 version 0.1 - created during PowerShell class
+
+.TODO
+
+- allow input of target domain(s)
+- new folder structure: domain name | GPO display name | backup date
+
+.WISHLIST
+
+- backup multiple domains in one execution
+- allow search criteria, e.g. to backup only GPOs beginning with a certain prefix
+- zip/compress the backup dirs
+- trim to keep only last X backups, or backups within last X days
+
+#>

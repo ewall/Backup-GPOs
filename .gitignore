@@ -1,0 +1,14 @@
+### ewall's default .gitignore  ###
+
+**~
+*.DS_Store
+*.bak
+*.cache
+*.log
+*.pyc
+*.pyo
+*.swp
+[Bb]uild/
+[Dd]ist/
+log/*.log
+tmp/**/*
