@@ -2,31 +2,70 @@
 
 Backup-GPOs.ps1 -- by Eric Wallace <wallae@mmc.org>, December 2011
 
+
 .SYNOPSIS
 
 Automated backup of Group Policy objects.
 
-.REQUIREMENTS
 
-This script must be run from an account with Domain Admins permissions on the target domain.
+.NOTES
 
+This script must be run from an account with Domain Admins permissions on the target domain(s).
+
+
+.PARAMETER domainLst
+
+Domain name, or a list of domain names separated by commas only (no spaces!)
+
+
+.PARAMETER searchTxt
+
+A word or part of a word that should be in the GPO's display name. If you use this search option,
+only the GPOs matching this term will be backed up.
+
+
+.PARAMETER backupDir
+
+Directory for saving the GPO backups. The folder structure will be created automatically.
+
+
+.EXAMPLE
+
+Backup all GPOs from the current user's domain to the default location:
+  .\Backup-GPOs.ps1
+
+Backup all GPOs for multiple domains:
+  .\Backup-GPOs.ps1 mehealth.org,mmcf.mehealth.org,mhr.mehealth.org
+
+Backup only GPOs with the word "test" in their name:
+  .\Backup-GPOs.ps1 mmcf.mehealth.org test
+  
+Backup all GPOs to a specific directory (note that the search term is blank):
+  .\Backup-GPOs.ps1 mmcf.mehealth.org "" C:\My_GPO_Backups
+
+  
 .HISTORY
 
 - 2011-07-07 version 0.1 - created during PowerShell class
+- 2011-12-22 version 0.2 - most core features implemented
+- 2011-12-23 version 0.3 - added support for multiple domains
+
 
 .TODO
 
 ƒ allow input of target domain(s)
 ƒ new folder structure: domain name | GPO display name | backup date
 ƒ put HTML reports in 2nd-level folder (GPO display name)
-- document parameters
-- document examples
+ƒ document parameters and examples
+- tweak output for sanity when running as background job, perhaps using t-logs?
+
 
 .WISHLIST
 
 ƒ allow search criteria, e.g. to backup only GPOs beginning with a certain prefix
-- backup multiple domains (or forest root and all children?) in one execution
-- zip/compress the backup dirs
+ƒ backup multiple domains in one execution
+- backup forest root and all child domains in one execution?
+- zip/compress the backup dirs?
 - trim to keep only last X backups, or backups within last X days
 
 #>
