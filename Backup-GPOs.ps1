@@ -48,14 +48,17 @@ Backup all GPOs to a specific directory (note that the search term is blank):
 param  (
   [string]$domainLst    = ( [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain() ).Name,
   [string]$searchTxt = "",
-  [string]$backupDir = "C:\GPOBackups"
+  [string]$backupDir = "C:\GPOBackups",
+  [int]$daysOld = 45
 )
 
 # configure via default values
 [boolean]$createReports = $true
+[boolean\$cleanupBackups = $true
 
 ### No user-serviceable parts beyond this point :P ###
 $today = Get-Date -Format yyyy-MM-dd
+$lastWrite = (Get-Date).AddDays(-$daysOld)
 if (-Not (Test-Path $backupDir -PathType container)) { mkdir $backupDir | Out-Null }
 
 # TODO: what to do with output?
@@ -91,6 +94,13 @@ $domainLst.Split(", ") | Foreach-Object {
     $bupath = Join-Path $bupath $gponame
     If (-Not (Test-Path $bupath -PathType container)) {
       mkdir $bupath | Out-Null
+    }
+    
+    # cleanup older backups
+    If ($cleanupBackups) {
+      Get-ChildItem $targetFolder | `
+        Where {$_.LastWriteTime -le "$lastWrite"} | `
+        Remove-Item -Recurse -Force -EA:SilentlyContinue -WA:SilentlyContinue -WhatIf # -WhatIf FOR TESTING ONLY
     }
     
     # save report here

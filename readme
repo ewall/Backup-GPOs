@@ -49,6 +49,7 @@ Backup all GPOs to a specific directory (note that the search term is blank):
 - 2011-07-07 version 0.1 - created during PowerShell class
 - 2011-12-22 version 0.2 - most core features implemented
 - 2011-12-23 version 0.3 - added support for multiple domains
+- 2011-12-30 version 0.4 - added support to delete older backups
 
 
 .TODO
@@ -64,8 +65,8 @@ Backup all GPOs to a specific directory (note that the search term is blank):
 
 ƒ allow search criteria, e.g. to backup only GPOs beginning with a certain prefix
 ƒ backup multiple domains in one execution
-- backup forest root and all child domains in one execution?
-- zip/compress the backup dirs?
-- trim to keep only last X backups, or backups within last X days
+ƒ delete backups older than X days
+X backup forest root and all child domains in one execution? --> rejected
+X zip/compress the backup dirs? --> rejected
 
 #>
