@@ -29,19 +29,37 @@ only the GPOs matching this term will be backed up.
 Directory for saving the GPO backups. The folder structure will be created automatically.
 
 
+.PARAMETER daysOld
+
+The script can automatically delete any backups older than the given number of days. The default
+is to disable cleanup, or you can set this option to 0 days which will also disable the cleanup.
+
+
 .EXAMPLE
+
+(Parameters can be listed in order, or by using optional named parameter flags shown in brackets.
+Text must be in quotes if it contains spaces, otherwise quotes are unnecessary.)
 
 Backup all GPOs from the current user's domain to the default location:
   .\Backup-GPOs.ps1
 
 Backup all GPOs for multiple domains:
-  .\Backup-GPOs.ps1 mehealth.org,mmcf.mehealth.org,mhr.mehealth.org
+  .\Backup-GPOs.ps1 [-domainLst] mehealth.org,mmcf.mehealth.org,mhr.mehealth.org
 
 Backup only GPOs with the word "test" in their name:
-  .\Backup-GPOs.ps1 mmcf.mehealth.org test
+  .\Backup-GPOs.ps1 [-domainLst] mmcf.mehealth.org [-searchTxt] test
   
-Backup all GPOs to a specific directory (note that the search term is blank):
-  .\Backup-GPOs.ps1 mmcf.mehealth.org "" C:\My_GPO_Backups
+Backup defaults except to a specific directory (remember to use quotes if it contains spaces):
+  .\Backup-GPOs.ps1 -backupDir C:\My_GPO_Backups
+  
+Use defaults, except cleanup backup folders older than 15 days:
+  .\Backup-GPOs.ps1 -daysOld 15
+
+Use defaults, except disable cleanup of old backup folders by specifying 0 days' retention (default):
+  .\Backup-GPOs.ps1 -daysOld 0
+  
+All parameters specified positionally (note that here the search term is blank):
+  .\Backup-GPOs.ps1 mmcf.mehealth.org "" C:\GPOBackups 15
 
   
 .HISTORY
@@ -49,7 +67,7 @@ Backup all GPOs to a specific directory (note that the search term is blank):
 - 2011-07-07 version 0.1 - created during PowerShell class
 - 2011-12-22 version 0.2 - most core features implemented
 - 2011-12-23 version 0.3 - added support for multiple domains
-- 2011-12-30 version 0.4 - added support to delete older backups
+- 2012-01-13 version 0.4 - added support to delete older backups
 
 
 .TODO

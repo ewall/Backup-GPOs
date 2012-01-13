@@ -30,17 +30,29 @@ Directory for saving the GPO backups. The folder structure will be created autom
 
 .EXAMPLE
 
+(Parameters can be listed in order, or by using optional named parameter flags shown in brackets.
+Text must be in quotes if it contains spaces, otherwise quotes are unnecessary.)
+
 Backup all GPOs from the current user's domain to the default location:
   .\Backup-GPOs.ps1
 
 Backup all GPOs for multiple domains:
-  .\Backup-GPOs.ps1 mehealth.org,mmcf.mehealth.org,mhr.mehealth.org
+  .\Backup-GPOs.ps1 [-domainLst] mehealth.org,mmcf.mehealth.org,mhr.mehealth.org
 
 Backup only GPOs with the word "test" in their name:
-  .\Backup-GPOs.ps1 mmcf.mehealth.org test
+  .\Backup-GPOs.ps1 [-domainLst] mmcf.mehealth.org [-searchTxt] test
   
-Backup all GPOs to a specific directory (note that the search term is blank):
-  .\Backup-GPOs.ps1 mmcf.mehealth.org "" C:\My_GPO_Backups
+Backup defaults except to a specific directory (remember to use quotes if it contains spaces):
+  .\Backup-GPOs.ps1 -backupDir C:\My_GPO_Backups
+  
+Use defaults, except cleanup backup folders older than 15 days:
+  .\Backup-GPOs.ps1 -daysOld 15
+
+Use defaults, except disable cleanup of old backup folders by specifying 0 days' retention (default):
+  .\Backup-GPOs.ps1 -daysOld 0
+  
+All parameters specified positionally (note that here the search term is blank):
+  .\Backup-GPOs.ps1 mmcf.mehealth.org "" C:\GPOBackups 15
 
 #>
 
@@ -49,17 +61,18 @@ param  (
   [string]$domainLst    = ( [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain() ).Name,
   [string]$searchTxt = "",
   [string]$backupDir = "C:\GPOBackups",
-  [int]$daysOld = 45
+  [int]$daysOld = 0
 )
 
 # configure via default values
 [boolean]$createReports = $true
-[boolean\$cleanupBackups = $true
+[boolean]$cleanupBackups = $true
+If ($daysOld -lt 1) { $cleanupBackups = $false }
 
 ### No user-serviceable parts beyond this point :P ###
 $today = Get-Date -Format yyyy-MM-dd
 $lastWrite = (Get-Date).AddDays(-$daysOld)
-if (-Not (Test-Path $backupDir -PathType container)) { mkdir $backupDir | Out-Null }
+If (-Not (Test-Path $backupDir -PathType container)) { mkdir $backupDir | Out-Null }
 
 # TODO: what to do with output?
 "### Backup-GPOs.ps1 ###"
@@ -81,6 +94,13 @@ $domainLst.Split(", ") | Foreach-Object {
     " - GPO name contains: " + $searchTxt
   }
 
+  # cleanup enabled?
+  If ($cleanupBackups) {
+    " - Removing backups older than " + $daysOld + " days"
+  } Else {
+    " - Do not cleanup old backups"
+  }
+  
   # inner loop-de-loop: each GPO
   $dom.SearchGPOs($sc) | ForEach-Object {
     # first-level folder structure
@@ -98,9 +118,9 @@ $domainLst.Split(", ") | Foreach-Object {
     
     # cleanup older backups
     If ($cleanupBackups) {
-      Get-ChildItem $targetFolder | `
+      Get-ChildItem $bupath | `
         Where {$_.LastWriteTime -le "$lastWrite"} | `
-        Remove-Item -Recurse -Force -EA:SilentlyContinue -WA:SilentlyContinue -WhatIf # -WhatIf FOR TESTING ONLY
+        Remove-Item -Recurse -Force -EA:SilentlyContinue -WA:SilentlyContinue
     }
     
     # save report here
